@@ -3,6 +3,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    gap: 20px;
 }
 
 .game-board {
@@ -26,4 +27,72 @@
     font-size: 2rem;
     font-weight: bold;
     text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+/* Tile states */
+.tile-filled {
+    border-color: #878a8c;
+}
+
+.tile-correct {
+    background-color: #6aaa64;
+    border-color: #6aaa64;
+    color: white;
+}
+
+.tile-present {
+    background-color: #c9b458;
+    border-color: #c9b458;
+    color: white;
+}
+
+.tile-absent {
+    background-color: #787c7e;
+    border-color: #787c7e;
+    color: white;
+}
+
+/* Animation for invalid words */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(5px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Game message */
+.game-message {
+    padding: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #000;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Tile reveal animation */
+.board-tile {
+    animation: reveal 0.2s ease-in;
+}
+
+@keyframes reveal {
+    0% {
+        transform: scale(1.1);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 } 

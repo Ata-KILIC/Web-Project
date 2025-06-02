@@ -1,7 +1,7 @@
 import React from 'react';
 import './Keyboard.css';
 
-const Keyboard = ({ onKeyPress, onEnter, onDelete }) => {
+const Keyboard = ({ onKeyPress, onEnter, onDelete, letterStates }) => {
     const rows = [
         ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
         ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
@@ -25,7 +25,11 @@ const Keyboard = ({ onKeyPress, onEnter, onDelete }) => {
                     {row.map((key) => (
                         <button
                             key={key}
-                            className={`keyboard-key ${key === 'ENTER' || key === '⌫' ? 'wide-key' : ''}`}
+                            className={`
+                                keyboard-key 
+                                ${key === 'ENTER' || key === '⌫' ? 'wide-key' : ''} 
+                                ${letterStates[key] ? `key-${letterStates[key]}` : ''}
+                            `}
                             onClick={() => handleClick(key)}
                         >
                             {key}

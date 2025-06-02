@@ -38,4 +38,27 @@
 .wide-key {
     flex: 1.5;
     font-size: 0.875rem;
+}
+
+/* Key states */
+.key-correct {
+    background-color: #6aaa64 !important;
+    color: white;
+}
+
+.key-present {
+    background-color: #c9b458 !important;
+    color: white;
+}
+
+.key-absent {
+    background-color: #787c7e !important;
+    color: white;
+}
+
+/* Prevent hover effect on evaluated keys */
+.key-correct:hover,
+.key-present:hover,
+.key-absent:hover {
+    background-color: inherit;
 } 
