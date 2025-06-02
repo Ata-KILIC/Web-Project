@@ -3,50 +3,101 @@ import './Wordle.css';
 import Keyboard from './Keyboard';
 
 const Wordle = () => {
-    // Number of attempts allowed
-    const MAX_ATTEMPTS = 6;
-    // Word length
-    const WORD_LENGTH = 5;
+    const DEFAULT_MAX_ATTEMPTS = 6;
+    const DEFAULT_WORD_LENGTH = 5;
 
-    // State for current attempt and guesses
+    const [maxAttempts, setMaxAttempts] = useState(DEFAULT_MAX_ATTEMPTS);
+    const [wordLength, setWordLength] = useState(DEFAULT_WORD_LENGTH);
     const [currentAttempt, setCurrentAttempt] = useState(0);
     const [currentPosition, setCurrentPosition] = useState(0);
-    const [board, setBoard] = useState(Array(MAX_ATTEMPTS).fill().map(() => Array(WORD_LENGTH).fill('')));
+    const [board, setBoard] = useState(() => Array(DEFAULT_MAX_ATTEMPTS).fill().map(() => Array(DEFAULT_WORD_LENGTH).fill('')));
     const [targetWord, setTargetWord] = useState('');
-    const [gameStatus, setGameStatus] = useState('playing'); // 'playing', 'won', 'lost'
-    const [letterStates, setLetterStates] = useState({}); // Track letter colors for keyboard
-    const [shake, setShake] = useState(false); // For invalid word animation
-    const [evaluations, setEvaluations] = useState(Array(MAX_ATTEMPTS).fill(null)); // Store letter evaluations
+    const [gameStatus, setGameStatus] = useState('playing');
+    const [letterStates, setLetterStates] = useState({});
+    const [shake, setShake] = useState(false);
+    const [evaluations, setEvaluations] = useState(() => Array(DEFAULT_MAX_ATTEMPTS).fill(null));
 
-    // Fetch target word on component mount
+    // Statistics state
+    const [streak, setStreak] = useState(0);
+    const [gamesWon, setGamesWon] = useState(0);
+    const [gamesPlayed, setGamesPlayed] = useState(0);
+
+    // Initialize board
+    const initializeBoard = () => {
+        const newBoard = Array(maxAttempts).fill().map(() => Array(wordLength).fill(''));
+        const newEvaluations = Array(maxAttempts).fill(null);
+        setBoard(newBoard);
+        setEvaluations(newEvaluations);
+        setCurrentAttempt(0);
+        setCurrentPosition(0);
+    };
+
+    // Load statistics from localStorage
     useEffect(() => {
-        const fetchWord = async () => {
-            try {
-                const response = await fetch('https://random-word-api.herokuapp.com/word?length=5');
-                const [word] = await response.json();
-                setTargetWord(word.toUpperCase());
-            } catch (error) {
-                console.error('Error fetching word:', error);
-                // Fallback word in case API fails
-                setTargetWord('REACT');
-            }
-        };
-        fetchWord();
+        const savedStats = localStorage.getItem('wordleStats');
+        if (savedStats) {
+            const { streak, gamesWon, gamesPlayed } = JSON.parse(savedStats);
+            setStreak(streak);
+            setGamesWon(gamesWon);
+            setGamesPlayed(gamesPlayed);
+        }
+        fetchNewWord(); // Initial word fetch
     }, []);
 
-    // Validate if word exists (you can expand this with a dictionary API)
+    // Save statistics to localStorage
+    useEffect(() => {
+        localStorage.setItem('wordleStats', JSON.stringify({
+            streak,
+            gamesWon,
+            gamesPlayed
+        }));
+    }, [streak, gamesWon, gamesPlayed]);
+
+    const resetGame = async () => {
+        setLetterStates({});
+        setGameStatus('playing');
+        initializeBoard();
+        await fetchNewWord();
+    };
+
+    const fetchNewWord = async () => {
+        try {
+            const response = await fetch(`https://random-word-api.herokuapp.com/word?length=${wordLength}`);
+            const [word] = await response.json();
+            setTargetWord(word.toUpperCase());
+        } catch (error) {
+            console.error('Error fetching word:', error);
+            setTargetWord('REACT'.slice(0, wordLength).padEnd(wordLength, 'X'));
+        }
+    };
+
+    // Handle settings changes
+    const handleSettingChange = (setting, value) => {
+        const numValue = parseInt(value, 10);
+        if (isNaN(numValue)) return;
+
+        if (setting === 'maxAttempts' && numValue >= 1 && numValue <= 12) {
+            setMaxAttempts(numValue);
+        } else if (setting === 'wordLength' && numValue >= 3 && numValue <= 8) {
+            setWordLength(numValue);
+        }
+    };
+
+    // Update board when settings change
+    useEffect(() => {
+        initializeBoard();
+        fetchNewWord();
+    }, [maxAttempts, wordLength]);
+
     const isValidWord = (word) => {
-        // For now, accept any 5-letter combination
-        // You can enhance this by checking against a dictionary API
-        return word.length === WORD_LENGTH;
+        return word.length === wordLength;
     };
 
     const evaluateGuess = (guess) => {
-        const evaluation = Array(WORD_LENGTH).fill('absent');
+        const evaluation = Array(wordLength).fill('absent');
         const targetLetters = targetWord.split('');
         const guessLetters = guess.split('');
         
-        // First pass: mark correct positions
         guessLetters.forEach((letter, i) => {
             if (letter === targetLetters[i]) {
                 evaluation[i] = 'correct';
@@ -54,7 +105,6 @@ const Wordle = () => {
             }
         });
 
-        // Second pass: mark present letters
         guessLetters.forEach((letter, i) => {
             if (evaluation[i] !== 'correct') {
                 const targetIndex = targetLetters.indexOf(letter);
@@ -84,16 +134,21 @@ const Wordle = () => {
     };
 
     const handleKeyPress = (key) => {
-        if (gameStatus !== 'playing' || currentPosition >= WORD_LENGTH) return;
+        if (gameStatus !== 'playing' || 
+            currentPosition >= wordLength || 
+            !board || 
+            !board[currentAttempt]) return;
         
         const newBoard = [...board];
-        newBoard[currentAttempt][currentPosition] = key;
-        setBoard(newBoard);
-        setCurrentPosition(currentPosition + 1);
+        if (newBoard[currentAttempt] && newBoard[currentAttempt][currentPosition] !== undefined) {
+            newBoard[currentAttempt][currentPosition] = key;
+            setBoard(newBoard);
+            setCurrentPosition(currentPosition + 1);
+        }
     };
 
     const handleEnter = () => {
-        if (currentPosition !== WORD_LENGTH) return;
+        if (currentPosition !== wordLength || !board || !board[currentAttempt]) return;
         
         const guess = board[currentAttempt].join('');
         
@@ -112,8 +167,13 @@ const Wordle = () => {
 
         if (guess === targetWord) {
             setGameStatus('won');
-        } else if (currentAttempt === MAX_ATTEMPTS - 1) {
+            setGamesWon(prev => prev + 1);
+            setStreak(prev => prev + 1);
+            setGamesPlayed(prev => prev + 1);
+        } else if (currentAttempt === maxAttempts - 1) {
             setGameStatus('lost');
+            setStreak(0);
+            setGamesPlayed(prev => prev + 1);
         } else {
             setCurrentAttempt(currentAttempt + 1);
             setCurrentPosition(0);
@@ -121,20 +181,22 @@ const Wordle = () => {
     };
 
     const handleDelete = () => {
-        if (currentPosition === 0) return;
+        if (currentPosition === 0 || !board || !board[currentAttempt]) return;
 
         const newBoard = [...board];
-        newBoard[currentAttempt][currentPosition - 1] = '';
-        setBoard(newBoard);
-        setCurrentPosition(currentPosition - 1);
+        if (newBoard[currentAttempt] && newBoard[currentAttempt][currentPosition - 1] !== undefined) {
+            newBoard[currentAttempt][currentPosition - 1] = '';
+            setBoard(newBoard);
+            setCurrentPosition(currentPosition - 1);
+        }
     };
 
-    // Handle physical keyboard events
     useEffect(() => {
         const handleKeydown = (event) => {
+            if (gameStatus !== 'playing') return;
+            
             const key = event.key.toUpperCase();
             
-            // Prevent default behavior for game-related keys
             if (
                 /^[A-Z]$/.test(key) || 
                 key === 'ENTER' || 
@@ -152,17 +214,55 @@ const Wordle = () => {
             }
         };
 
-        // Add event listener
         window.addEventListener('keydown', handleKeydown);
-
-        // Cleanup function to remove event listener
-        return () => {
-            window.removeEventListener('keydown', handleKeydown);
-        };
-    }, [currentAttempt, currentPosition, gameStatus]); // Dependencies for the useEffect hook
+        return () => window.removeEventListener('keydown', handleKeydown);
+    }, [currentAttempt, currentPosition, gameStatus, wordLength, maxAttempts]);
 
     return (
         <div className="wordle-container">
+            <div className="game-settings">
+                <div className="setting-input">
+                    <label htmlFor="maxAttempts">Max Attempts</label>
+                    <input
+                        id="maxAttempts"
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={maxAttempts}
+                        onChange={(e) => handleSettingChange('maxAttempts', e.target.value)}
+                    />
+                </div>
+                <div className="setting-input">
+                    <label htmlFor="wordLength">Word Length</label>
+                    <input
+                        id="wordLength"
+                        type="number"
+                        min="3"
+                        max="8"
+                        value={wordLength}
+                        onChange={(e) => handleSettingChange('wordLength', e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="stats-panel">
+                <div className="stat-item">
+                    <span>🔥</span>
+                    <span className="streak-count">{streak}</span>
+                </div>
+                <div className="stat-item">
+                    <span className="win-ratio">{gamesWon}</span>
+                    <span>/</span>
+                    <span>{gamesPlayed}</span>
+                </div>
+            </div>
+
+            <div className="game-controls">
+                <button className="new-game-btn" onClick={resetGame}>
+                    New Game
+                </button>
+            </div>
+
             {gameStatus !== 'playing' && (
                 <div className="game-message">
                     {gameStatus === 'won' ? 'Congratulations!' : `The word was: ${targetWord}`}
