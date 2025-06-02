@@ -1,15 +1,13 @@
+import React from 'react';
 import "./App.css";
 import Navbar from "./Navbar";
-import Home from "./Home";
+import Wordle from './Wordle';
 
 function App() {
   return (
     <div className="App">
       <Navbar />
-      <div className="content">
-        <Home />
-      </div>
-      <h1>App Component</h1>
+      <Wordle />
     </div>
   );
 }

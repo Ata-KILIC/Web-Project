@@ -1,0 +1,41 @@
+.keyboard {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.keyboard-key {
+    height: 58px;
+    border-radius: 4px;
+    border: none;
+    background-color: #d3d6da;
+    font-size: 1.25rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    flex: 1;
+    min-width: 40px;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.keyboard-key:hover {
+    background-color: #bbbdc0;
+}
+
+.wide-key {
+    flex: 1.5;
+    font-size: 0.875rem;
+} 

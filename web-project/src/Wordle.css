@@ -1,0 +1,29 @@
+.wordle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.game-board {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.board-row {
+    display: flex;
+    gap: 5px;
+}
+
+.board-tile {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #d3d6da;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+} 

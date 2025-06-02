@@ -67,3 +67,35 @@ code {
   }
 }
 
+.home {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.blog-preview {
+  background: #f4f4f4;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s;
+}
+
+.blog-preview:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  background: #e9ecef;
+}
+
+.blog-preview h2 {
+  margin: 0 0 0.5rem 0;
+  color: #232526;
+  font-size: 1.5rem;
+}
+
+.blog-preview p {
+  margin: 0.25rem 0;
+  color: #555;
+  font-size: 1rem;
+}
+
